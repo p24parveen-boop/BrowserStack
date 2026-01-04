@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SprintForecast - Sprint Planning </title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #6366f1;
+            --secondary: #ec4899;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .header-subtitle { color: var(--text-muted); font-size: 1.1rem; }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .badge {
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--primary);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-left: auto;
+        }
+
+        /* Form Inputs */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: white;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        textarea { resize: vertical; min-height: 80px; }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        button:hover { background: #4f46e5; transform: translateY(-2px); }
+
+        /* Analysis Results */
+        .analysis-result {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .analysis-result.show { display: block; animation: slideIn 0.3s ease-out; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-title {
+            color: var(--success);
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px dashed rgba(255,255,255,0.1);
+        }
+
+        .metric:last-child { border-bottom: none; }
+
+        .metric-label { color: var(--text-muted); }
+        .metric-value { font-weight: bold; color: white; }
+
+        .confidence-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--warning), var(--success));
+            transition: width 0.3s;
+        }
+
+        /* Alert Boxes */
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .alert.show { display: block; }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid var(--warning);
+            color: #fbbf24;
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--danger);
+            color: #fca5a5;
+        }
+
+        /* Tickets List */
+        .ticket-item {
+            background: rgba(255,255,255,0.03);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .ticket-name { font-weight: bold; }
+        .ticket-points { background: var(--primary); padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; }
+
+        .ticket-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .status-pass { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .status-warn { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .status-fail { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+
+        /* Sprint Summary */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .summary-stat {
+            background: rgba(255,255,255,0.03);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .summary-stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .summary-stat-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .full-width { grid-column: 1 / -1; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>⚡ SprintForecast</h1>
+        <p class="header-subtitle">AI-First Sprint Planning - Validate tickets before they enter the sprint</p>
+    </header>
+
+    <div class="main-grid">
+        <!-- LEFT COLUMN: Ticket Input -->
+        <div class="card">
+            <h2>
+                📝 Create Ticket
+                <span class="badge">MVP Feature 1</span>
+            </h2>
+
+            <form id="ticketForm">
+                <div class="form-group">
+                    <label>Ticket Title</label>
+                    <input type="text" id="ticketTitle" placeholder="e.g., Refactor Payment Module" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="ticketDesc" placeholder="What is this ticket about?" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Your Estimate (Story Points)</label>
+                    <input type="number" id="ticketPoints" min="1" max="21" placeholder="5" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Team Member</label>
+                    <select id="teamMember" required>
+                        <option value="">Select a team member...</option>
+                        <option value="junior">Junior Developer (0-2 years)</option>
+                        <option value="mid">Mid-Level Developer (2-5 years)</option>
+                        <option value="senior">Senior Developer (5+ years)</option>
+                    </select>
+                </div>
+
+                <button type="submit">Analyze with AI 🔍</button>
+            </form>
+        </div>
+
+        <!-- RIGHT COLUMN: AI Analysis -->
+        <div class="card">
+            <h2>
+                🤖 AI Analysis
+                <span class="badge">MVP Feature 2</span>
+            </h2>
+
+            <div class="alert alert-warning" id="ambiguityAlert">
+                <strong>⚠️ Ambiguity Detected:</strong> <span id="ambiguityMsg"></span>
+            </div>
+
+            <div class="alert alert-danger" id="overestimateAlert">
+                <strong>⚠️ Estimation Alert:</strong> <span id="overestimateMsg"></span>
+            </div>
+
+            <div class="analysis-result" id="analysisResult">
+                <div class="result-title">✅ Analysis Complete</div>
+                
+                <div class="metric">
+                    <span class="metric-label">Historical Similar Tickets</span>
+                    <span class="metric-value" id="historicalAvg">12 pts</span>
+                </div>
+
+                <div class="metric">
+                    <span class="metric-label">Your Estimate Gap</span>
+                    <span class="metric-value" id="estimateGap">-58%</span>
+                </div>
+
+                <div class="metric">
+                    <span class="metric-label">Recommended Estimate</span>
+                    <span class="metric-value" id="recommendedEstimate">15-20 pts</span>
+                </div>
+
+                <div class="metric">
+                    <span class="metric-label">Confidence Level</span>
+                </div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" id="confidenceFill" style="width: 45%;"></div>
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 5px;" id="confidenceText">Low (45%)</div>
+
+                <div class="metric" style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 15px; margin-top: 15px;">
+                    <span class="metric-label">Dependencies Found</span>
+                    <span class="metric-value" id="depsFound">3 services</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; padding: 15px; background: rgba(99, 102, 241, 0.1); border-radius: 8px; display: none;" id="emptyState">
+                <p style="color: var(--text-muted); text-align: center;">Create a ticket to see AI analysis →</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SPRINT PLANNING BOARD -->
+    <div class="card full-width">
+        <h2>
+            📊 Sprint Planning Board
+            <span class="badge">Live Demo</span>
+        </h2>
+
+        <div class="summary-grid">
+            <div class="summary-stat">
+                <div class="summary-stat-value" id="totalPoints">0</div>
+                <div class="summary-stat-label">Total Points</div>
+            </div>
+            <div class="summary-stat">
+                <div class="summary-stat-value" id="ticketCount">0</div>
+                <div class="summary-stat-label">Tickets</div>
+            </div>
+            <div class="summary-stat">
+                <div class="summary-stat-value" id="riskScore">0%</div>
+                <div class="summary-stat-label">Sprint Risk</div>
+            </div>
+            <div class="summary-stat full-width">
+                <div class="summary-stat-value" id="sprintPredictability">0%</div>
+                <div class="summary-stat-label">Predictability Score (Goal: >80%)</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <h3 style="margin-bottom: 15px;">Tickets in Sprint</h3>
+            <div id="sprintBoard">
+                <p style="color: var(--text-muted); text-align: center;">Add tickets to see them here →</p>
+            </div>
+        </div>
+
+        <button style="margin-top: 20px;" id="commitSprintBtn" onclick="commitSprint()" disabled>
+            ✅ Commit Sprint (with Confidence Scores)
+        </button>
+    </div>
+
+</div>
+
+<script>
+    // Mock historical data
+    const historicalData = {
+        'refactor': { avg: 12, range: [10, 15], deps: 3, confidence: 0.85 },
+        'api': { avg: 8, range: [6, 10], deps: 2, confidence: 0.80 },
+        'database': { avg: 15, range: [12, 18], deps: 4, confidence: 0.90 },
+        'ui': { avg: 5, range: [3, 7], deps: 1, confidence: 0.75 },
+        'fix': { avg: 3, range: [2, 5], deps: 1, confidence: 0.65 },
+        'feature': { avg: 10, range: [8, 13], deps: 2, confidence: 0.75 }
+    };
+
+    let sprintTickets = [];
+
+    document.getElementById('ticketForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        analyzeTicket();
+    });
+
+    function analyzeTicket() {
+        const title = document.getElementById('ticketTitle').value;
+        const desc = document.getElementById('ticketDesc').value;
+        const estimate = parseInt(document.getElementById('ticketPoints').value);
+        const teamMember = document.getElementById('teamMember').value;
+
+        // Find relevant historical data
+        let relevant = historicalData['feature'];
+        const titleLower = title.toLowerCase();
+        for (const [key, data] of Object.entries(historicalData)) {
+            if (titleLower.includes(key)) {
+                relevant = data;
+                break;
+            }
+        }
+
+        // Calculate analysis
+        const historicalAvg = relevant.avg;
+        const gap = ((estimate - historicalAvg) / historicalAvg) * 100;
+        const isUnderestimate = estimate < historicalAvg;
+        const confidence = Math.max(20, Math.min(95, 50 + (isUnderestimate ? -gap / 2 : gap / 3)));
+        const recommended = relevant.range;
+
+        // Show/hide alerts
+        if (desc.length < 20) {
+            document.getElementById('ambiguityAlert').classList.add('show');
+            document.getElementById('ambiguityMsg').textContent = 'Description is too vague. Add more context.';
+        } else {
+            document.getElementById('ambiguityAlert').classList.remove('show');
+        }
+
+        if (isUnderestimate) {
+            document.getElementById('overestimateAlert').classList.add('show');
+            document.getElementById('overestimateMsg').textContent = `Your estimate (${estimate}pts) is ${Math.abs(gap).toFixed(0)}% lower than historical average (${historicalAvg}pts).`;
+        } else {
+            document.getElementById('overestimateAlert').classList.remove('show');
+        }
+
+        // Update analysis results
+        document.getElementById('historicalAvg').textContent = `${historicalAvg} pts`;
+        document.getElementById('estimateGap').textContent = `${gap > 0 ? '+' : ''}${gap.toFixed(0)}%`;
+        document.getElementById('recommendedEstimate').textContent = `${recommended[0]}-${recommended[1]} pts`;
+        document.getElementById('depsFound').textContent = `${relevant.deps} services affected`;
+        document.getElementById('confidenceFill').style.width = confidence + '%';
+        document.getElementById('confidenceText').textContent = `${confidence.toFixed(0)}%`;
+
+        document.getElementById('analysisResult').classList.add('show');
+        document.getElementById('emptyState').style.display = 'none';
+
+        // Add to sprint
+        const ticket = {
+            title,
+            estimate,
+            historicalAvg,
+            recommended,
+            confidence: confidence / 100,
+            deps: relevant.deps,
+            id: Date.now()
+        };
+
+        sprintTickets.push(ticket);
+        updateSprintBoard();
+    }
+
+    function updateSprintBoard() {
+        const board = document.getElementById('sprintBoard');
+        const totalPoints = sprintTickets.reduce((sum, t) => sum + t.estimate, 0);
+        const riskScore = Math.min(100, sprintTickets.reduce((sum, t) => sum + (1 - t.confidence) * 20, 0));
+        const predictability = Math.max(0, 100 - riskScore);
+
+        document.getElementById('totalPoints').textContent = totalPoints;
+        document.getElementById('ticketCount').textContent = sprintTickets.length;
+        document.getElementById('riskScore').textContent = riskScore.toFixed(0) + '%';
+        document.getElementById('sprintPredictability').textContent = predictability.toFixed(0) + '%';
+
+        board.innerHTML = sprintTickets.map(ticket => {
+            const statusClass = ticket.confidence > 0.7 ? 'status-pass' : ticket.confidence > 0.5 ? 'status-warn' : 'status-fail';
+            const statusText = ticket.confidence > 0.7 ? '✅ Good' : ticket.confidence > 0.5 ? '⚠️ Risky' : '❌ High Risk';
+            return `
+                <div class="ticket-item">
+                    <div class="ticket-header">
+                        <span class="ticket-name">${ticket.title}</span>
+                        <div style="display: flex; gap: 10px;">
+                            <span class="ticket-points">${ticket.estimate} pts</span>
+                            <span class="ticket-status ${statusClass}">${statusText}</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">
+                        Historical avg: ${ticket.historicalAvg}pts | Confidence: ${(ticket.confidence * 100).toFixed(0)}% | Dependencies: ${ticket.deps}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        document.getElementById('commitSprintBtn').disabled = sprintTickets.length === 0;
+    }
+
+    function commitSprint() {
+        const predictability = parseInt(document.getElementById('sprintPredictability').textContent);
+        alert(`✅ Sprint Committed!\n\nPredictability Score: ${predictability}%\nGoal: >80%\n\n${predictability > 80 ? '🎯 On track!' : '⚠️ Consider reducing scope'}`);
+    }
+</script>
+
+</body>
+</html>
